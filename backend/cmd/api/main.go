@@ -8,6 +8,7 @@ import (
 )
 
 func main() {
+
 	err := models.ConnectToDB()
 	if err != nil {
 		log.Fatalf("Failed to connect to MongoDB: %v", err)

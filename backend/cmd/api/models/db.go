@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/joho/godotenv"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -19,12 +20,13 @@ func init() {
 }
 
 var client *mongo.Client
-var dbName = os.Getenv("DB")
 
 func ConnectToDB() error {
-
+	dbName := os.Getenv("DB_NAME")
 	mongoURI := os.Getenv("MONGOURI")
 	clientOptions := options.Client().ApplyURI(mongoURI)
+	fmt.Println(mongoURI)
+	fmt.Println(dbName)
 	var err error
 	client, err = mongo.Connect(context.Background(), clientOptions)
 	if err != nil {
@@ -36,5 +38,36 @@ func ConnectToDB() error {
 
 // GetDBCollection returns a reference to a collection in a MongoDB database
 func GetDBCollection(collectionName string) *mongo.Collection {
+	dbName := os.Getenv("DB_NAME")
 	return client.Database(dbName).Collection(collectionName)
+}
+
+func Register(user User) (string, error) {
+	collection := GetDBCollection("Users")
+
+	result, err := collection.InsertOne(context.Background(), user)
+	if err != nil {
+		return "", err
+	}
+
+	if oid, ok := result.InsertedID.(string); ok {
+		return oid, nil
+	}
+
+	return "Registered Successfully", fmt.Errorf("registered successfully")
+}
+
+func GetUserByEmail(email string) (User, error) {
+	var user User
+	collection := GetDBCollection("Users")
+
+	err := collection.FindOne(context.Background(), bson.M{"email": email}).Decode(&user)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return User{}, fmt.Errorf("User not found")
+		}
+		return User{}, err
+	}
+
+	return user, nil
 }

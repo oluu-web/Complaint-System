@@ -13,6 +13,7 @@ import (
 // Config represents the application configuration
 type Config struct {
 	MongoURI string
+	DbName   string
 }
 
 // LoadEnv loads environment variables from a .env file
@@ -42,9 +43,10 @@ func GetConfig() (*Config, error) {
 	}
 
 	mongoURI := os.Getenv("MONGOURI")
-
+	dbName := os.Getenv("DB_NAME")
 	config := &Config{
 		MongoURI: mongoURI,
+		DbName:   dbName,
 	}
 
 	return config, nil
