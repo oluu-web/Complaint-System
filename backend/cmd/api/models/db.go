@@ -45,16 +45,14 @@ func GetDBCollection(collectionName string) *mongo.Collection {
 func Register(user User) (string, error) {
 	collection := GetDBCollection("Users")
 
-	result, err := collection.InsertOne(context.Background(), user)
+	_, err := collection.InsertOne(context.Background(), user)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to create user: %w", err)
 	}
 
-	if oid, ok := result.InsertedID.(string); ok {
-		return oid, nil
-	}
+	oid := user.ID.Hex()
 
-	return "Registered Successfully", fmt.Errorf("registered successfully")
+	return oid, nil
 }
 
 func GetUserByEmail(email string) (User, error) {
@@ -69,5 +67,61 @@ func GetUserByEmail(email string) (User, error) {
 		return User{}, err
 	}
 
+	matNo, err := GetMatricNo(email)
+	if err != nil {
+		fmt.Println("Unable to get Matric Number")
+	}
+	user.MatricNo = matNo
+
 	return user, nil
+}
+
+func CreateNewComplaint(complaint Complaint) (string, error) {
+	collection := GetDBCollection("Complaints")
+
+	_, err := collection.InsertOne(context.Background(), complaint)
+	if err != nil {
+		return "", fmt.Errorf("failed to insert complaint: %w", err)
+	}
+
+	oid := complaint.ID.Hex()
+
+	return oid, nil
+}
+
+func GetCourseByCourseCode(courseCode string) (Course, error) {
+	collection := GetDBCollection("Courses")
+
+	filter := bson.M{
+		"course_code": courseCode,
+	}
+
+	var course Course
+	err := collection.FindOne(context.Background(), filter).Decode(&course)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return Course{}, fmt.Errorf("Course not found")
+		}
+		return Course{}, err
+	}
+	return course, nil
+}
+
+func GetMatricNo(email string) (string, error) {
+	collection := GetDBCollection("Students")
+
+	filter := bson.M{
+		"email": email,
+	}
+
+	var result struct {
+		MatricNo string `bson:"matric_no"`
+	}
+
+	err := collection.FindOne(context.Background(), filter).Decode(&result)
+	if err != nil {
+		return "", err
+	}
+
+	return result.MatricNo, nil
 }

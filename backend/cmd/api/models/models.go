@@ -7,12 +7,13 @@ import (
 )
 
 type User struct {
-	ID        primitive.ObjectID `json:"_id" bson:"_id"`
+	ID        primitive.ObjectID `json:"_id" bson:"_id,omitempty"`
 	FirstName string             `json:"first_name,omitempty" bson:"first_name,omitempty"`
 	LastName  string             `json:"last_name,omitempty" bson:"last_name,omitempty"`
 	Email     string             `json:"email,omitempty" bson:"email,omitempty"`
 	Role      string             `json:"role,omitempty" bson:"role,omitempty"`
 	Password  string             `json:"password" bson:"password"`
+	MatricNo  string             `json:"matric_no,omitempty" bson:"matric_no,omitempty"`
 }
 
 type LoginCredentials struct {
@@ -21,17 +22,17 @@ type LoginCredentials struct {
 }
 
 type Student struct {
-	ID        primitive.ObjectID   `json:"_id" bson:"_id"`
-	MatricNo  string               `json:"matric_no" bson:"matric_no"`
-	FirstName string               `json:"first_name,omitempty" bson:"first_name,omitempty"`
-	LastName  string               `json:"last_name,omitempty" bson:"last_name,omitempty"`
-	Email     string               `json:"email,omitempty" bson:"email,omitempty"`
-	Courses   []primitive.ObjectID `json:"courses,omitempty" bson:"courses,omitempty"`
+	ID        primitive.ObjectID `json:"_id" bson:"_id,omitempty"`
+	MatricNo  string             `json:"matric_no" bson:"matric_no"`
+	FirstName string             `json:"first_name,omitempty" bson:"first_name,omitempty"`
+	LastName  string             `json:"last_name,omitempty" bson:"last_name,omitempty"`
+	Email     string             `json:"email,omitempty" bson:"email,omitempty"`
+	Courses   []string           `json:"courses,omitempty" bson:"courses,omitempty"`
 	Program   string
 }
 
 type Lecturer struct {
-	ID           primitive.ObjectID   `json:"_id" bson:"_id"`
+	ID           primitive.ObjectID   `json:"_id" bson:"_id,omitempty"`
 	StaffID      string               `json:"staff_id" bson:"staff_id"`
 	FirstName    string               `json:"first_name,omitempty" bson:"first_name,omitempty"`
 	LastName     string               `json:"last_name,omitempty" bson:"last_name,omitempty"`
@@ -40,28 +41,29 @@ type Lecturer struct {
 }
 
 type Course struct {
-	ID               primitive.ObjectID   `json:"_id" bson:"_id"`
-	CourseCode       string               `json:"course_code" bson:"course_code"`
-	CourseName       string               `json:"course_name,omitempty" bson:"course_name,omitempty"`
-	Semester         string               `json:"semester,omitempty" bson:"semester,omitempty"`
-	StudentsEnrolled []primitive.ObjectID `json:"students_enrolled,omitempty" bson:"students_enrolled,omitempty"`
-	Lecturers        []primitive.ObjectID `json:"lecturers,omitempty" bson:"lecturers,omitempty"`
+	ID               primitive.ObjectID `json:"_id" bson:"_id,omitempty"`
+	CourseCode       string             `json:"course_code" bson:"course_code"`
+	CourseName       string             `json:"course_name,omitempty" bson:"course_name,omitempty"`
+	Semester         string             `json:"semester,omitempty" bson:"semester,omitempty"`
+	StudentsEnrolled []string           `json:"students_enrolled,omitempty" bson:"students_enrolled,omitempty"`
+	Lecturers        []string           `json:"lecturers,omitempty" bson:"lecturers,omitempty"`
 }
 
-type Request struct {
-	ID                 primitive.ObjectID `json:"_id" bson:"_id"`
-	RequestingStudent  primitive.ObjectID `json:"requesting_student,omitempty" bson:"requesting_student,omitempty"`
+type Complaint struct {
+	ID                 primitive.ObjectID `json:"_id" bson:"_id,omitempty"`
+	RequestingStudent  string             `json:"requesting_student,omitempty" bson:"requesting_student,omitempty"`
 	RequestDetails     string             `json:"request_details,omitempty" bson:"request_details,omitempty"`
 	FilePath           string             `json:"file_path,omitempty" bson:"file_path,omitempty"`
 	TestScore          int                `json:"test_score,omitempty" bson:"test_score,omitempty"`
-	CourseConcerned    primitive.ObjectID `json:"course_concerned,omitempty" bson:"course_concerned,omitempty"`
-	RespondingLecturer primitive.ObjectID `json:"responding_lecturer,omitempty" bson:"responding_lecturer,omitempty"`
+	CourseConcerned    string             `json:"course_concerned,omitempty" bson:"course_concerned,omitempty"`
+	RespondingLecturer string             `json:"responding_lecturer,omitempty" bson:"responding_lecturer,omitempty"`
 	Status             string             `json:"status,omitempty" bson:"status,omitempty"`
-	TimeSent           time.Time          `json:"time_sent,omitempty" bson:"time_sent,omitempty"`
+	CreatedAt          time.Time          `json:"created_at,omitempty" bson:"created_at,omitempty"`
+	UpdatedAt          time.Time          `json:"updated_at,omitempty" bson:"updated_at,omitempty"`
 }
 
 type Senate struct {
-	ID        primitive.ObjectID `json:"_id" bson:"_id"`
+	ID        primitive.ObjectID `json:"_id" bson:"_id,omitempty"`
 	FirstName string             `json:"first_name,omitempty" bson:"first_name,omitempty"`
 	LastName  string             `json:"last_name,omitempty" bson:"last_name,omitempty"`
 	Email     string             `json:"email,omitempty" bson:"email,omitempty"`
@@ -69,7 +71,7 @@ type Senate struct {
 }
 
 type CSIS struct {
-	ID        primitive.ObjectID `json:"_id" bson:"_id"`
+	ID        primitive.ObjectID `json:"_id" bson:"_id,omitempty"`
 	FirstName string             `json:"first_name,omitempty" bson:"first_name,omitempty"`
 	LastName  string             `json:"last_name,omitempty" bson:"last_name,omitempty"`
 	Email     string             `json:"email,omitempty" bson:"email,omitempty"`
