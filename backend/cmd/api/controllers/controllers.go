@@ -15,6 +15,8 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/joho/godotenv"
+	"github.com/julienschmidt/httprouter"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -68,15 +70,10 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	matricNo, err := models.GetMatricNo(credentials.Email)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
-
 	ok := jsonResp{
 		OK:      true,
 		Message: "Login successful",
-		UserID:  matricNo,
+		UserID:  credentials.Username,
 	}
 
 	bad := jsonResp{
@@ -85,8 +82,8 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		UserID:  "null",
 	}
 
-	//find user by email
-	user, err := models.GetUserByEmail(credentials.Email)
+	//find user by ID
+	user, err := models.GetUserByUserID(credentials.Username)
 	if err != nil {
 		utilities.WriteJSON(w, http.StatusUnauthorized, bad, "response")
 		return
@@ -94,13 +91,15 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 	//compare passwords
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(credentials.Password)); err != nil {
-		http.Error(w, "Invalid email or password", http.StatusUnauthorized)
+		http.Error(w, "Invalid username or password", http.StatusUnauthorized)
 		return
 	}
 
 	//Generste JWT token
 	jwtKey, err := base64.URLEncoding.DecodeString(jwtKeyEncoded)
+	fmt.Println("JWT KEY ENCODED, LINE 98: ", jwtKeyEncoded)
 	if err != nil {
+		http.Error(w, "Error decoding JWT key", http.StatusInternalServerError)
 		fmt.Println("Error decoding JWT key:", err)
 		return
 	}
@@ -108,17 +107,16 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	claims := &jwt.StandardClaims{
 		ExpiresAt: expirationTime.Unix(),
 		Subject:   user.ID.Hex(),
-		Issuer:    credentials.Email,
+		Issuer:    credentials.Username,
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	tokenString, err := token.SignedString(jwtKey)
-	fmt.Println("Line 115, JWT key", jwtKey)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		fmt.Println("line 114: ", jwtKey)
 		return
 	}
-	fmt.Println(tokenString)
 
 	//send token in response
 	w.Header().Set("Authorization", tokenString)
@@ -135,7 +133,7 @@ func NewComplaint(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	studentId, ok := r.Context().Value("matricNo").(string)
+	studentId, ok := r.Context().Value("userID").(string)
 	if !ok {
 		utilities.ErrorJSON(w, errors.New("unable to get student ID from context"))
 		return
@@ -171,4 +169,52 @@ func ExtractEmailFromRequest(r *http.Request) string {
 		return ""
 	}
 	return requestData.Email
+}
+
+func GetComplaintByObjectID(w http.ResponseWriter, r *http.Request) {
+	params := httprouter.ParamsFromContext(r.Context())
+	id := params.ByName("id")
+
+	objID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		utilities.ErrorJSON(w, err)
+		return
+	}
+
+	complaint, err := models.GetComplaintByObjectId(objID)
+	if err != nil {
+		fmt.Println("Unable to get complaint")
+		utilities.ErrorJSON(w, err)
+		return
+	}
+
+	utilities.WriteJSON(w, http.StatusOK, complaint, "complaint")
+}
+
+func GetComplaintsByStaffID(w http.ResponseWriter, r *http.Request) {
+	params := httprouter.ParamsFromContext(r.Context())
+	id := params.ByName("id")
+
+	complaints, err := models.GetComplaintsByStaffId(id)
+	if err != nil {
+		fmt.Println("Unable to get complaint")
+		utilities.ErrorJSON(w, err)
+		return
+	}
+
+	utilities.WriteJSON(w, http.StatusOK, complaints, "complaints")
+}
+
+func GetComplaintsByStudentID(w http.ResponseWriter, r *http.Request) {
+	params := httprouter.ParamsFromContext(r.Context())
+	id := params.ByName("id")
+
+	complaints, err := models.GetComplaintsByStudentId(id)
+	if err != nil {
+		fmt.Println("Unable to get complaint")
+		utilities.ErrorJSON(w, err)
+		return
+	}
+
+	utilities.WriteJSON(w, http.StatusOK, complaints, "complaints")
 }

@@ -8,6 +8,7 @@ import (
 
 	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -22,11 +23,8 @@ func init() {
 var client *mongo.Client
 
 func ConnectToDB() error {
-	dbName := os.Getenv("DB_NAME")
 	mongoURI := os.Getenv("MONGOURI")
 	clientOptions := options.Client().ApplyURI(mongoURI)
-	fmt.Println(mongoURI)
-	fmt.Println(dbName)
 	var err error
 	client, err = mongo.Connect(context.Background(), clientOptions)
 	if err != nil {
@@ -55,24 +53,31 @@ func Register(user User) (string, error) {
 	return oid, nil
 }
 
-func GetUserByEmail(email string) (User, error) {
+func GetUserByObjectID(id primitive.ObjectID) (User, error) {
 	var user User
 	collection := GetDBCollection("Users")
 
-	err := collection.FindOne(context.Background(), bson.M{"email": email}).Decode(&user)
+	err := collection.FindOne(context.Background(), bson.M{"_id": id}).Decode(&user)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return User{}, fmt.Errorf("User not found")
 		}
 		return User{}, err
 	}
+	return user, nil
+}
 
-	matNo, err := GetMatricNo(email)
+func GetUserByUserID(userID string) (User, error) {
+	var user User
+	collection := GetDBCollection("Users")
+
+	err := collection.FindOne(context.Background(), bson.M{"user_id": userID}).Decode(&user)
 	if err != nil {
-		fmt.Println("Unable to get Matric Number")
+		if err == mongo.ErrNoDocuments {
+			return User{}, fmt.Errorf("User not found")
+		}
+		return User{}, err
 	}
-	user.MatricNo = matNo
-
 	return user, nil
 }
 
@@ -124,4 +129,70 @@ func GetMatricNo(email string) (string, error) {
 	}
 
 	return result.MatricNo, nil
+}
+
+func GetComplaintByObjectId(id primitive.ObjectID) (Complaint, error) {
+	var complaint Complaint
+	collection := GetDBCollection("Complaints")
+	filter := bson.M{
+		"_id": id,
+	}
+
+	err := collection.FindOne(context.Background(), filter).Decode(&complaint)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return Complaint{}, fmt.Errorf("Complaint not found")
+		}
+		return Complaint{}, err
+	}
+	return complaint, nil
+}
+
+func GetComplaintsByStaffId(id string) ([]Complaint, error) {
+	collection := GetDBCollection("Complaints")
+
+	filter := bson.M{"responding_lecturer": id}
+
+	cursor, err := collection.Find(context.Background(), filter)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(context.Background())
+
+	var complaints []Complaint
+	for cursor.Next(context.Background()) {
+		var complaint Complaint
+		err := cursor.Decode(&complaint)
+		if err != nil {
+			return nil, err
+		}
+		complaints = append(complaints, complaint)
+	}
+
+	return complaints, nil
+}
+
+func GetComplaintsByStudentId(id string) ([]Complaint, error) {
+	collection := GetDBCollection("Complaints")
+	filter := bson.M{
+		"requesting_student": id,
+	}
+
+	cursor, err := collection.Find(context.Background(), filter)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(context.Background())
+
+	var complaints []Complaint
+	for cursor.Next(context.Background()) {
+		var complaint Complaint
+		err := cursor.Decode(&complaint)
+		if err != nil {
+			return nil, err
+		}
+		complaints = append(complaints, complaint)
+	}
+
+	return complaints, nil
 }

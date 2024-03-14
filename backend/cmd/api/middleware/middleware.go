@@ -1,17 +1,25 @@
 package middleware
 
 import (
-	"complaints/cmd/api/models"
 	"context"
 	"encoding/base64"
 	"fmt"
+	"log"
 	"net/http"
-	"os"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/joho/godotenv"
 )
 
-var jwtKeyEncoded = os.Getenv("JWTKEY")
+func init() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file: ", err)
+	}
+}
+
+// var jwtKeyEncoded = os.Getenv("JWTKEY")
+var jwtKeyEncoded = "GQFUUfN75vQdsYvzJBmXEQvICiX9HU8HfHrPkNJfRq0="
 
 func EnableCORS(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -61,22 +69,13 @@ func Authenticate(next http.Handler) http.Handler {
 		claims, ok := token.Claims.(jwt.MapClaims)
 		if !ok {
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
-			fmt.Println("Claims")
 			return
 		}
 
-		email := claims["iss"].(string)
-
-		// Get matric number
-		matricNo, err := models.GetMatricNo(email)
-		if err != nil {
-			fmt.Println("Unavle to get matric number")
-			http.Error(w, "Unauthorized", http.StatusUnauthorized)
-			return
-		}
+		userID := claims["iss"].(string)
 
 		//store matric number in the request context
-		ctx := context.WithValue(r.Context(), "matricNo", matricNo)
+		ctx := context.WithValue(r.Context(), "userID", userID)
 		r = r.WithContext(ctx)
 
 		next.ServeHTTP(w, r)

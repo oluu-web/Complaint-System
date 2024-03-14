@@ -8,16 +8,16 @@ import (
 
 type User struct {
 	ID        primitive.ObjectID `json:"_id" bson:"_id,omitempty"`
+	UserID    string             `json:"user_id,omitempty" bson:"user_id,omitempty"`
 	FirstName string             `json:"first_name,omitempty" bson:"first_name,omitempty"`
 	LastName  string             `json:"last_name,omitempty" bson:"last_name,omitempty"`
 	Email     string             `json:"email,omitempty" bson:"email,omitempty"`
 	Role      string             `json:"role,omitempty" bson:"role,omitempty"`
 	Password  string             `json:"password" bson:"password"`
-	MatricNo  string             `json:"matric_no,omitempty" bson:"matric_no,omitempty"`
 }
 
 type LoginCredentials struct {
-	Email    string `json:"email,omitempty" bson:"email,omitempty"`
+	Username string `json:"username,omitempty" bson:"username,omitempty"`
 	Password string `json:"password" bson:"password"`
 }
 
@@ -32,12 +32,12 @@ type Student struct {
 }
 
 type Lecturer struct {
-	ID           primitive.ObjectID   `json:"_id" bson:"_id,omitempty"`
-	StaffID      string               `json:"staff_id" bson:"staff_id"`
-	FirstName    string               `json:"first_name,omitempty" bson:"first_name,omitempty"`
-	LastName     string               `json:"last_name,omitempty" bson:"last_name,omitempty"`
-	Email        string               `json:"email,omitempty" bson:"email,omitempty"`
-	CoursesTaken []primitive.ObjectID `json:"courses_taken,omitempty" bson:"courses_taken,omitempty"`
+	ID           primitive.ObjectID `json:"_id" bson:"_id,omitempty"`
+	StaffID      string             `json:"staff_id" bson:"staff_id"`
+	FirstName    string             `json:"first_name,omitempty" bson:"first_name,omitempty"`
+	LastName     string             `json:"last_name,omitempty" bson:"last_name,omitempty"`
+	Email        string             `json:"email,omitempty" bson:"email,omitempty"`
+	CoursesTaken []string           `json:"courses_taken,omitempty" bson:"courses_taken,omitempty"`
 }
 
 type Course struct {
