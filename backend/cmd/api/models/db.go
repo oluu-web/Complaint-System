@@ -196,3 +196,62 @@ func GetComplaintsByStudentId(id string) ([]Complaint, error) {
 
 	return complaints, nil
 }
+
+func ChangeComplaintStatus(id string, newStatus string) error {
+	collection := GetDBCollection("Complaints")
+
+	objectID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return err
+	}
+
+	filter := bson.M{"_id": objectID}
+
+	update := bson.M{
+		"$set": bson.M{
+			"status": newStatus,
+		},
+	}
+
+	_, err = collection.UpdateOne(context.Background(), filter, update)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func ChangeStatusToByHOD(id string) error {
+	collection := GetDBCollection("Complaints")
+
+	objectID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return err
+	}
+
+	filter := bson.M{"_id": objectID}
+
+	update := bson.M{
+		"$set": bson.M{
+			"status": "Approved by HOD",
+		},
+	}
+	_, err = collection.UpdateOne(context.Background(), filter, update)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func GetStudentById(userID string) (Student, error) {
+	var student Student
+	collection := GetDBCollection("Students")
+
+	err := collection.FindOne(context.Background(), bson.M{"matric_no": userID}).Decode(&student)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return Student{}, fmt.Errorf("Student not found")
+		}
+		return Student{}, err
+	}
+	return student, nil
+}
