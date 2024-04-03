@@ -4,6 +4,7 @@ import StudentHome from "./components/Student/Home";
 import ComplaintForm from "./components/Student/ComplaintForm";
 import Test from "./components/test";
 import Login from "./login";
+import LecturerHome from "./components/Lecturer/Home";
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/student-dashboard" element={<StudentHome />} />
           <Route path="/new-complaint" element={<ComplaintForm />} />
+          <Route path="/lecturer-dashboard" element={<LecturerHome />} />
         </Routes>
     </BrowserRouter>
   )

@@ -8,7 +8,7 @@ export default function ComplaintForm() {
   const [error, setError] = useState(null)
   const [course_concerned, setCourseConcerned] = useState("")
   const [request_details, setRequestDetails] = useState("")
-  const [test_score, setTestScore] = useState(0)
+  const [test_score, setTestScore] = useState()
   const [successMessage, setSuccessMessage] = useState("")
   const [errorMessage, setErrorMessage] = useState("")
   const userID = localStorage.getItem("userID")
@@ -47,7 +47,7 @@ export default function ComplaintForm() {
 
   axios.post(`http://localhost:4000/complaint`, formData, {
     headers: {
-      "Content-Type": "multipart/form-data",
+      
       Authorization: token,
     },
   })
@@ -59,7 +59,22 @@ export default function ComplaintForm() {
     setRequestDetails("")
   })
   .catch((err) => {
-    setErrorMessage("failed to submit complaint")
+    if (err.response) {
+      // The request was made and the server responded with a status code
+      // that falls out of the range of 2xx
+      console.log(err.response.data);
+      console.log(err.response.status);
+      console.log(err.response.headers);
+      setErrorMessage("Failed to submit complaint. Server responded with: " + err.response.data);
+    } else if (err.request) {
+      // The request was made but no response was received
+      console.log(err.request);
+      setErrorMessage("Failed to submit complaint. No response received from server.");
+    } else {
+       // Something happened in setting up the request that triggered an Error
+      console.log('Error', err.message);
+      setErrorMessage("Failed to submit complaint. Error: " + err.message);
+    }
     });
   }  
 

@@ -103,7 +103,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		jwt.StandardClaims
 		Role string `json:"role,omitempty"`
 	}
-	expirationTime := time.Now().Add(20 * time.Minute)
+	expirationTime := time.Now().Add(4320 * time.Minute)
 	claims := CustomClaims{
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expirationTime.Unix(),
@@ -208,7 +208,7 @@ func GetComplaintsByStaffID(w http.ResponseWriter, r *http.Request) {
 
 	complaints, err := models.GetComplaintsByStaffId(id)
 	if err != nil {
-		fmt.Println("Unable to get complaint")
+		fmt.Println("Unable to get complaints", err)
 		utilities.ErrorJSON(w, err)
 		return
 	}
@@ -222,7 +222,7 @@ func GetComplaintsByStudentID(w http.ResponseWriter, r *http.Request) {
 
 	complaints, err := models.GetComplaintsByStudentId(id)
 	if err != nil {
-		fmt.Println("Unable to get complaint")
+		fmt.Println("Unable to get complaints", err)
 		utilities.ErrorJSON(w, err)
 		return
 	}
