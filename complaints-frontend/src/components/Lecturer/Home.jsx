@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import './Home.css'
 
 const LecturerHome = () => {
@@ -86,9 +86,11 @@ const LecturerHome = () => {
      <tbody>
       {currentComplaints.map((complaint) => (
        <tr key = {complaint._id}>
+       <Link to={`complaint/${complaint._id}`}>
         <td className='border px-4 py-2'>
          {complaint.course_concerned}
         </td>
+        </Link>
         <td className="border px-4 py-2">
          {complaint.requesting_student}
         </td>
