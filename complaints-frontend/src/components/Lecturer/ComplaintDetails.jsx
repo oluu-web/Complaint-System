@@ -10,6 +10,7 @@ const Complaint = () => {
   id: id,
   matricNo: "",
   details: "",
+  file_path: "",
  });
  const [isLoaded, setIsLoaded] = useState(false);
  const [error, setError] = useState(null);
@@ -55,6 +56,8 @@ const Complaint = () => {
     <div className='bg-gray-100 p-4 rounded-lg'>
     <h2 className='text-xl font-bold'>Details</h2>
     <p>{complaint.details}</p>
+    <br />
+    <img src={complaint.file_path} />
     </div>
    </Fragment>
   )
