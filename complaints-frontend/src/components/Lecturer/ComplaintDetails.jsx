@@ -33,6 +33,7 @@ const Complaint = () => {
    setComplaint({
     matricNo: json.complaint.requesting_student,
     details: json.complaint.request_details,
+    file_path: json.complaint.file_path
    });
    setIsLoaded(true);
   })
@@ -57,7 +58,7 @@ const Complaint = () => {
     <h2 className='text-xl font-bold'>Details</h2>
     <p>{complaint.details}</p>
     <br />
-    <img src={complaint.file_path} />
+    {complaint.file_path !== '' && <img src={complaint.file_path} alt='complaint'/>}
     </div>
    </Fragment>
   )
