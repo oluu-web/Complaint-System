@@ -1,5 +1,6 @@
 import React, { Fragment, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import Navbar from '../Navbar';
 
 const Complaint = () => {
 

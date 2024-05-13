@@ -1,6 +1,7 @@
 import React, { useState, useEffect} from "react";
 import { useNavigate } from "react-router-dom";
-import './Home.css';
+import '../Home.css'
+import Navbar from "../Navbar";
 const StudentHome = () => {
   const [complaints, setComplaints] = useState([]);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -33,7 +34,7 @@ const StudentHome = () => {
     setError(error);
   })
   }, [token, userID])
-  const totalPages = Math.ceil(complaints.length / 10)
+  const totalPages = complaints ? Math.ceil(complaints.length / complaintsPerPage) : 0;
 
   const handlePageChange = (pageNumber) => {
     setCurrentPage(pageNumber)
@@ -73,9 +74,10 @@ const StudentHome = () => {
   } else {
     const indexOfLastComplaint = currentPage * 10;
     const indexOfFirstComplaint = indexOfLastComplaint - 10;
-    const currentComplaints = complaints.slice(indexOfFirstComplaint, indexOfLastComplaint)
+    const currentComplaints = complaints ? complaints.slice(indexOfFirstComplaint, indexOfLastComplaint) : [];
   return (
     <div>
+    <Navbar />
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-2xl font-bold">My Complaints</h1>

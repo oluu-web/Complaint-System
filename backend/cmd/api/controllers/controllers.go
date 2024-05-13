@@ -335,3 +335,44 @@ func GetCoursesByStudentID(w http.ResponseWriter, r *http.Request) {
 
 	utilities.WriteJSON(w, http.StatusOK, courses, "courses")
 }
+
+func DeclineRequest(w http.ResponseWriter, r *http.Request) {
+	params := httprouter.ParamsFromContext(r.Context())
+	id := params.ByName("id")
+
+	var updatedComplaint models.Complaint
+	err := json.NewDecoder(r.Body).Decode(&updatedComplaint)
+	if err != nil {
+		utilities.ErrorJSON(w, err)
+		return
+	}
+
+	err = models.ChangeComplaintStatus(id, "Declined")
+	if err != nil {
+		utilities.ErrorJSON(w, err)
+	}
+
+	utilities.WriteJSON(w, http.StatusOK, "Status Updated Successfully", "Success")
+}
+
+func GetComplaintsForHOD(w http.ResponseWriter, r *http.Request) {
+	complaints, err := models.GetComplaintsByStatus("Approved By Lecturer")
+	if err != nil {
+		fmt.Println("Unable to get complaints", err)
+		utilities.ErrorJSON(w, err)
+		return
+	}
+
+	utilities.WriteJSON(w, http.StatusOK, complaints, "complaints")
+}
+
+func GetComplaintsForSenate(w http.ResponseWriter, r *http.Request) {
+	complaints, err := models.GetComplaintsByStatus("Approved By HOD")
+	if err != nil {
+		fmt.Println("Unable to get complaints", err)
+		utilities.ErrorJSON(w, err)
+		return
+	}
+
+	utilities.WriteJSON(w, http.StatusOK, complaints, "complaints")
+}

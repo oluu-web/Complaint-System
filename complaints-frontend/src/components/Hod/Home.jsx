@@ -2,17 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { Link } from "react-router-dom";
 import '../Home.css'
 
-const LecturerHome = () => {
+const HODHome = () => {
  const [complaints, setComplaints] = useState([]);
   const [isLoaded, setIsLoaded] = useState(false);
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1)
   const [complaintsPerPage, setComplaintsPerPage] = useState(10);
   const token = localStorage.getItem("token")
-  const userID = localStorage.getItem("userID")
+  // const userID = localStorage.getItem("userID")
 
   useEffect(() => {
-   fetch(`http://localhost:4000/staff-complaints/${userID}`, {
+   fetch("http://localhost:4000/hod-complaints", {
     headers: {
      Authorization: token,
     },
@@ -33,7 +33,8 @@ const LecturerHome = () => {
     setIsLoaded(true);
     setError(error);
    })
-  }, [token, userID])
+  }, [token])
+
   const totalPages = complaints ? Math.ceil(complaints.length / complaintsPerPage) : 0;
 
   const handlePageChange = (pageNumber) => {
@@ -74,7 +75,7 @@ const LecturerHome = () => {
     const currentComplaints = complaints ? complaints.slice(indexOfFirstComplaint, indexOfLastComplaint) : [];
   return (
    <div className="container mx-auto px-4 py-8">
-   {complaints.length > 0 ? (
+   {complaints !== null ? (
     <table className = "table-auto w-full">
      <thead>
       <tr>
@@ -125,4 +126,4 @@ const LecturerHome = () => {
   )
 }
 }
-export default LecturerHome;
+export default HODHome;

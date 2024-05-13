@@ -21,9 +21,11 @@ func InitRoutes() http.Handler {
 	router.HandlerFunc(http.MethodGet, "/complaints/:id", authHandler(controllers.GetComplaintsByStudentID))
 	router.HandlerFunc(http.MethodGet, "/courses/:id", authHandler(controllers.GetCoursesByStudentID))
 	router.HandlerFunc(http.MethodGet, "/staff-complaints/:id", authHandler(controllers.GetComplaintsByStaffID))
+	router.HandlerFunc(http.MethodGet, "/hod-complaints", authHandler(controllers.GetComplaintsForHOD))
 	router.HandlerFunc(http.MethodPut, "/approved-by-lecturer/:id", authHandler(controllers.ChangeComplaintStatusByLecturer))
 	router.HandlerFunc(http.MethodPut, "/approved-by-advisor/:id", authHandler(controllers.ChangeComplaintStatusByAdvisor))
 	router.HandlerFunc(http.MethodPut, "/approved-by-hod/:id", authHandler(controllers.ChangeComplaintStatusByHOD))
 	router.HandlerFunc(http.MethodPut, "/approved-by-senate/:id", authHandler(controllers.ChangeComplaintStatusBySenate))
+	router.HandlerFunc(http.MethodPut, "/decline/:id", authHandler((controllers.DeclineRequest)))
 	return middleware.EnableCORS(router)
 }

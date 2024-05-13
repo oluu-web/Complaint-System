@@ -259,3 +259,28 @@ func GetStudentById(userID string) (Student, error) {
 	}
 	return student, nil
 }
+
+func GetComplaintsByStatus(status string) ([]Complaint, error) {
+	collection := GetDBCollection("Complaints")
+	filter := bson.M{
+		"status": status,
+	}
+
+	cursor, err := collection.Find(context.Background(), filter)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(context.Background())
+
+	var complaints []Complaint
+	for cursor.Next(context.Background()) {
+		var complaint Complaint
+		err := cursor.Decode(&complaint)
+		if err != nil {
+			return nil, err
+		}
+		complaints = append(complaints, complaint)
+	}
+
+	return complaints, nil
+}
