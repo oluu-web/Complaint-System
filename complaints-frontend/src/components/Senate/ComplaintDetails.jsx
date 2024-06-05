@@ -49,14 +49,14 @@ const Complaint = () => {
   const handleAccept = (e) => {
   e.preventDefault();
 
-  axios.put(`http://localhost:4000/approved-by-lecturer/${id}`, {}, {
+  axios.put(`http://localhost:4000/approved-by-senate/${id}`, {}, {
     headers: {
       Authorization: token,
     }
   })
   .then((res) => {
     console.log(res)
-    navigate('/lecturer-dashboard')
+    navigate('/senate-dashboard')
   })
   .catch((err) => {
     if (err.response) {

@@ -7,10 +7,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"log"
 	"math/rand"
 	"net/http"
 	"os"
+	"path/filepath"
+	"strconv"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -136,9 +139,47 @@ func Login(w http.ResponseWriter, r *http.Request) {
 }
 
 func NewComplaint(w http.ResponseWriter, r *http.Request) {
-	var complaint models.Complaint
-	err := json.NewDecoder(r.Body).Decode(&complaint)
+	// Limit the size of the incoming file
+	r.Body = http.MaxBytesReader(w, r.Body, 10<<20) // 10 MB max
+	if err := r.ParseMultipartForm(10 << 20); err != nil {
+		http.Error(w, "File too large", http.StatusBadRequest)
+		return
+	}
+
+	courseConcerned := r.FormValue("course_concerned")
+	requestDetails := r.FormValue("request_details")
+	testScore, err := strconv.Atoi(r.FormValue("test_score"))
 	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println("This is the course concerned:" + courseConcerned)
+
+	file, handler, err := r.FormFile("file")
+	if err != nil {
+		utilities.ErrorJSON(w, err)
+		return
+	}
+	defer file.Close()
+
+	//ensure upload directory exists
+	uploadsDir := "uploads"
+	if _, err := os.Stat(uploadsDir); os.IsNotExist(err) {
+		err = os.Mkdir(uploadsDir, os.ModePerm)
+		if err != nil {
+			utilities.ErrorJSON(w, err)
+			return
+		}
+	}
+
+	//create new fle name and save the file
+	dst, err := os.Create(filepath.Join(uploadsDir, handler.Filename))
+	if err != nil {
+		utilities.ErrorJSON(w, err)
+		return
+	}
+	defer dst.Close()
+
+	if _, err := io.Copy(dst, file); err != nil {
 		utilities.ErrorJSON(w, err)
 		return
 	}
@@ -148,7 +189,17 @@ func NewComplaint(w http.ResponseWriter, r *http.Request) {
 		utilities.ErrorJSON(w, errors.New("unable to get student ID from context"))
 		return
 	}
-	complaint.RequestingStudent = studentId
+
+	complaint := models.Complaint{
+		RequestingStudent: studentId,
+		CourseConcerned:   courseConcerned,
+		RequestDetails:    requestDetails,
+		TestScore:         testScore,
+		FilePath:          fmt.Sprintf("/uploads/%s", handler.Filename),
+		Status:            "Pending",
+		CreatedAt:         time.Now(),
+		UpdatedAt:         time.Now(),
+	}
 	course, err := models.GetCourseByCourseCode(string(complaint.CourseConcerned))
 	if err != nil {
 		utilities.ErrorJSON(w, err)
@@ -161,10 +212,6 @@ func NewComplaint(w http.ResponseWriter, r *http.Request) {
 	respondingLecturer := course.Lecturers[rand.Intn(len(course.Lecturers))]
 
 	complaint.RespondingLecturer = respondingLecturer
-	complaint.Status = "Pending"
-	complaint.CreatedAt = time.Now()
-	complaint.UpdatedAt = time.Now()
-
 	_, err = models.CreateNewComplaint(complaint)
 	if err != nil {
 		utilities.ErrorJSON(w, err)

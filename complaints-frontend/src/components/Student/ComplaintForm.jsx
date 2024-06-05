@@ -8,7 +8,8 @@ export default function ComplaintForm() {
   const [error, setError] = useState(null)
   const [course_concerned, setCourseConcerned] = useState("")
   const [request_details, setRequestDetails] = useState("")
-  const [test_score, setTestScore] = useState()
+  const [test_score, setTestScore] = useState("")
+  const [file, setFile] = useState(null)
   const [successMessage, setSuccessMessage] = useState("")
   const [errorMessage, setErrorMessage] = useState("")
   const userID = localStorage.getItem("userID")
@@ -40,14 +41,28 @@ export default function ComplaintForm() {
   function handleSubmit(e) {
   e.preventDefault();
 
+  const testScoreInt = parseInt(test_score, 10);
+    if (isNaN(testScoreInt) || testScoreInt < 0 || testScoreInt > 30) {
+      setErrorMessage("Test score must be between 0 and 30.");
+      return;
+    }
+
   const formData = new FormData()
   formData.append("course_concerned", course_concerned)
   formData.append("request_details", request_details)
-  formData.append("test_score", test_score)
+  formData.append("test_score", testScoreInt)
+  if (file) {
+    formData.append("file", file)
+  }
 
+  // Log formData entries for debugging
+  for (let pair of formData.entries()) {
+    console.log(pair[0] + ': ' + pair[1]);
+  }
+  
   axios.post(`http://localhost:4000/complaint`, formData, {
     headers: {
-      
+      "Content-Type": "multipart/form-data",
       Authorization: token,
     },
   })
@@ -57,6 +72,7 @@ export default function ComplaintForm() {
     setCourseConcerned("")
     setTestScore("")
     setRequestDetails("")
+    setFile(null)
   })
   .catch((err) => {
     if (err.response) {
@@ -65,7 +81,7 @@ export default function ComplaintForm() {
       console.log(err.response.data);
       console.log(err.response.status);
       console.log(err.response.headers);
-      setErrorMessage("Failed to submit complaint. Server responded with: " + err.response.data);
+      setErrorMessage("Failed to submit complaint. Server responded with: " + JSON.stringify(err.response.data));
     } else if (err.request) {
       // The request was made but no response was received
       console.log(err.request);
@@ -124,12 +140,23 @@ export default function ComplaintForm() {
       <br />
 
       <label htmlFor='test_score' className="block mb-2">Test Score</label>
-      <textarea
+      <input
+      type = "number"
       id = 'test_score'
+      min="0"
+      max="30"
       value = {test_score}
       onChange={(e => setTestScore(e.target.value))}
       className="block w-full border border-gray-300 rounded px-3 py-2 mb-4"
       />
+
+      <label htmlFor="file" className="block mb-2">Upload File</label>
+      <input
+            type="file"
+            id="file"
+            onChange={(e) => setFile(e.target.files[0])}
+            className="block w-full border border-gray-300 rounded px-3 py-2 mb-4"
+          />
 
       <button type="submit" className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600">Submit</button>
       </form>

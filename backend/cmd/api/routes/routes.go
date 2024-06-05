@@ -10,6 +10,9 @@ import (
 
 func InitRoutes() http.Handler {
 	router := httprouter.New()
+
+	//serve static files
+	router.ServeFiles("/uploads/*filepath", http.Dir("./uploads"))
 	router.HandlerFunc(http.MethodPost, "/register", controllers.Register)
 	router.HandlerFunc(http.MethodPost, "/login", controllers.Login)
 
@@ -22,10 +25,15 @@ func InitRoutes() http.Handler {
 	router.HandlerFunc(http.MethodGet, "/courses/:id", authHandler(controllers.GetCoursesByStudentID))
 	router.HandlerFunc(http.MethodGet, "/staff-complaints/:id", authHandler(controllers.GetComplaintsByStaffID))
 	router.HandlerFunc(http.MethodGet, "/hod-complaints", authHandler(controllers.GetComplaintsForHOD))
+	router.HandlerFunc(http.MethodGet, "/senate-complaints", authHandler(controllers.GetComplaintsForSenate))
 	router.HandlerFunc(http.MethodPut, "/approved-by-lecturer/:id", authHandler(controllers.ChangeComplaintStatusByLecturer))
 	router.HandlerFunc(http.MethodPut, "/approved-by-advisor/:id", authHandler(controllers.ChangeComplaintStatusByAdvisor))
 	router.HandlerFunc(http.MethodPut, "/approved-by-hod/:id", authHandler(controllers.ChangeComplaintStatusByHOD))
 	router.HandlerFunc(http.MethodPut, "/approved-by-senate/:id", authHandler(controllers.ChangeComplaintStatusBySenate))
 	router.HandlerFunc(http.MethodPut, "/decline/:id", authHandler((controllers.DeclineRequest)))
+
+	//serve static files
+	// router.Handler(http.MethodGet, "/uploads/*filepath", http.StripPrefix("/uploads", http.FileServer(http.Dir("uploads"))))
+
 	return middleware.EnableCORS(router)
 }
