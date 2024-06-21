@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Fragment } from "react";
 import { useNavigate } from "react-router-dom";
 import '../Home.css';
 
@@ -82,17 +82,24 @@ const StudentHome = () => {
     const currentComplaints = complaints ? complaints.slice(indexOfFirstComplaint, indexOfLastComplaint) : [];
 
     return (
+      <Fragment>
       <div className="container mx-auto px-4 py-8">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-2xl font-bold">My Complaints</h1>
-          <button
+          {/* <button
             className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
             onClick={handleNewComplaint}
           >
             New Complaint
-          </button>
+          </button> */}
         </div>
         {complaints !== null ? (
+          <div>
+          <button
+          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded flex justify-between items-center mb-8"
+            onClick={handleNewComplaint}>
+              New Complaint
+            </button>
           <table className="table-auto w-full">
             <thead>
               <tr>
@@ -111,17 +118,8 @@ const StudentHome = () => {
               ))}
             </tbody>
           </table>
-        ) : (
-          <div className="flex justify-center">
-            <button
-              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-              onClick={handleNewComplaint}
-            >
-              New Complaint
-            </button>
-          </div>
-        )}
-        <div className="mt-8 flex justify-between items-center">
+
+          <div className="mt-8 flex justify-between items-center">
           {renderPaginationButtons()}
           <select
             className="ml-4 px-2 py-1 rounded border"
@@ -133,7 +131,19 @@ const StudentHome = () => {
             <option value={100}>100</option>
           </select>
         </div>
+        </div>
+        ) : (
+          <div className="flex justify-center">
+            <button
+              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+              onClick={handleNewComplaint}
+            >
+              New Complaint
+            </button>
+          </div>
+        )}
       </div>
+      </Fragment>
     );
   }
 };

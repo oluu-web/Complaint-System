@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Fragment } from "react";
 import { useNavigate } from "react-router-dom";
 import '../Home.css';
 
@@ -27,7 +27,11 @@ const HODHome = () => {
         return response.json();
       })
       .then((json) => {
-        setComplaints(json.complaints);
+        // Filter out complaints with the status "pending"
+        const filteredComplaints = json.complaints.filter(
+          (complaint) => complaint.status === "Approved By Lecturer"
+        );
+        setComplaints(filteredComplaints);
         setIsLoaded(true);
       })
       .catch((error) => {
@@ -47,9 +51,6 @@ const HODHome = () => {
     setCurrentPage(1);
   };
 
-  const handleNewComplaint = () => {
-    navigate('/new-complaint');
-  };
 
   const renderPaginationButtons = () => {
     const pageNumbers = [];
@@ -82,58 +83,57 @@ const HODHome = () => {
     const currentComplaints = complaints ? complaints.slice(indexOfFirstComplaint, indexOfLastComplaint) : [];
 
     return (
+      <Fragment>
       <div className="container mx-auto px-4 py-8">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-2xl font-bold">My Complaints</h1>
-          <button
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-            onClick={handleNewComplaint}
-          >
-            New Complaint
-          </button>
-        </div>
-        {complaints !== null ? (
-          <table className="table-auto w-full">
-            <thead>
-              <tr>
-                <th className="border px-4 py-2">Course Concerned</th>
-                <th className="border px-4 py-2">Assigned Lecturer</th>
-                <th className="border px-4 py-2">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {currentComplaints.map((complaint) => (
-                <tr key={complaint._id}>
-                  <td className="border px-4 py-2">{complaint.course_concerned}</td>
-                  <td className="border px-4 py-2">{complaint.responding_lecturer}</td>
-                  <td className="border px-4 py-2">{complaint.status}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        {complaints.length > 0 ? (
+          <div>
+              <table className="table-auto w-full">
+                <thead>
+                  <tr>
+                    <th className="border px-4 py-2">Course Concerned</th>
+                    <th className="border px-4 py-2">Student Involved</th>
+                    <th className="border px-4 py-2">Assigned Lecturer</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {currentComplaints.map((complaint) => (
+                    <tr
+                      key={complaint._id}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        navigate(`complaint/${complaint._id}`);
+                      }}
+                      style={{ cursor: "pointer" }}
+                    >
+                      <td className="border px-4 py-2">{complaint.course_concerned}</td>
+                      <td className="border px-4 py-2">{complaint.requesting_student}</td>
+                      <td className="border px-4 py-2">{complaint.responding_lecturer}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+
+              <div className="mt-8 flex justify-between items-center">
+                {renderPaginationButtons()}
+                <select
+                  className="ml-4 px-2 py-1 rounded border"
+                  value={complaintsPerPage}
+                  onChange={handleComplaintsPerPageChange}
+                >
+                  <option value={10}>10</option>
+                  <option value={50}>50</option>
+                  <option value={100}>100</option>
+                </select>
+              </div>
+            </div>
         ) : (
           <div className="flex justify-center">
-            <button
-              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-              onClick={handleNewComplaint}
-            >
-              New Complaint
-            </button>
+            <h2>You have no re-evaluation requests at the moment</h2>
           </div>
         )}
-        <div className="mt-8 flex justify-between items-center">
-          {renderPaginationButtons()}
-          <select
-            className="ml-4 px-2 py-1 rounded border"
-            value={complaintsPerPage}
-            onChange={handleComplaintsPerPageChange}
-          >
-            <option value={10}>10</option>
-            <option value={50}>50</option>
-            <option value={100}>100</option>
-          </select>
+
         </div>
-      </div>
+      </Fragment>
     );
   }
 };
