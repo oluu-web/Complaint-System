@@ -92,7 +92,7 @@ const StudentHome = () => {
             New Complaint
           </button>
         </div>
-        {complaints.length > 0 ? (
+        {complaints !== null ? (
           <table className="table-auto w-full">
             <thead>
               <tr>
