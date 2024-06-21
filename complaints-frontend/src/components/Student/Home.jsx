@@ -1,7 +1,7 @@
 import React, { useState, useEffect} from "react";
 import { useNavigate } from "react-router-dom";
 import '../Home.css'
-import Navbar from "../Navbar";
+// import Navbar from "../Navbar";
 const StudentHome = () => {
   const [complaints, setComplaints] = useState([]);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -77,7 +77,6 @@ const StudentHome = () => {
     const currentComplaints = complaints ? complaints.slice(indexOfFirstComplaint, indexOfLastComplaint) : [];
   return (
     <div>
-    <Navbar />
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-2xl font-bold">My Complaints</h1>
@@ -88,7 +87,7 @@ const StudentHome = () => {
           New Complaint
         </button>
       </div>
-      {complaints.length > 0 ? (
+      {complaints !== null ? (
         <table className="table-auto w-full">
           <thead>
             <tr>
