@@ -96,7 +96,6 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 	//Generste JWT token
 	jwtKey, err := base64.URLEncoding.DecodeString(jwtKeyEncoded)
-	fmt.Println("JWT KEY ENCODED, LINE 98: ", jwtKeyEncoded)
 	if err != nil {
 		http.Error(w, "Error decoding JWT key", http.StatusInternalServerError)
 		fmt.Println("Error decoding JWT key:", err)
@@ -133,7 +132,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 	//send token in response
 	w.Header().Set("Authorization", tokenString)
-	w.WriteHeader(http.StatusOK)
+	// w.WriteHeader(http.StatusOK)
 	utilities.WriteJSON(w, http.StatusOK, ok, "response")
 	fmt.Println("Logged in successfully!")
 }

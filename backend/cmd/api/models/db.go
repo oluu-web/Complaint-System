@@ -27,7 +27,6 @@ func ConnectToDB() error {
 	if mongoURI == "" {
 		return fmt.Errorf("MONGOURI environment variable not set")
 	}
-	fmt.Println("MongoURI: ", mongoURI)
 	clientOptions := options.Client().ApplyURI(mongoURI)
 	var err error
 	client, err = mongo.Connect(context.Background(), clientOptions)
