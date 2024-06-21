@@ -96,7 +96,6 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 	//Generste JWT token
 	jwtKey, err := base64.URLEncoding.DecodeString(jwtKeyEncoded)
-	fmt.Println("JWT KEY ENCODED, LINE 98: ", jwtKeyEncoded)
 	if err != nil {
 		http.Error(w, "Error decoding JWT key", http.StatusInternalServerError)
 		fmt.Println("Error decoding JWT key:", err)
@@ -135,7 +134,6 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Authorization", tokenString)
 	w.WriteHeader(http.StatusOK)
 	utilities.WriteJSON(w, http.StatusOK, ok, "response")
-	fmt.Println("Logged in successfully!")
 }
 
 func NewComplaint(w http.ResponseWriter, r *http.Request) {
@@ -383,6 +381,22 @@ func GetCoursesByStudentID(w http.ResponseWriter, r *http.Request) {
 	utilities.WriteJSON(w, http.StatusOK, courses, "courses")
 }
 
+func GetCoursesByStaffID(w http.ResponseWriter, r *http.Request) {
+	params := httprouter.ParamsFromContext(r.Context())
+	id := params.ByName("id")
+
+	lecturer, err := models.GetStaffById(id)
+	if err != nil {
+		fmt.Println("Unable to get student")
+		utilities.ErrorJSON(w, err)
+		return
+	}
+
+	courses := lecturer.CoursesTaken
+
+	utilities.WriteJSON(w, http.StatusOK, courses, "courses")
+}
+
 func DeclineRequest(w http.ResponseWriter, r *http.Request) {
 	params := httprouter.ParamsFromContext(r.Context())
 	id := params.ByName("id")
@@ -415,6 +429,22 @@ func GetComplaintsForHOD(w http.ResponseWriter, r *http.Request) {
 
 func GetComplaintsForSenate(w http.ResponseWriter, r *http.Request) {
 	complaints, err := models.GetComplaintsByStatus("Approved By HOD")
+	if err != nil {
+		fmt.Println("Unable to get complaints", err)
+		utilities.ErrorJSON(w, err)
+		return
+	}
+
+	utilities.WriteJSON(w, http.StatusOK, complaints, "complaints")
+}
+
+func GetComplaintsByCourseCode(w http.ResponseWriter, r *http.Request) {
+	params := httprouter.ParamsFromContext(r.Context())
+	id := params.ByName("id")
+	selectedCourse := r.URL.Query().Get("course")
+	fmt.Println(id)
+
+	complaints, err := models.GetComplaintsByCourseCode(id, selectedCourse)
 	if err != nil {
 		fmt.Println("Unable to get complaints", err)
 		utilities.ErrorJSON(w, err)

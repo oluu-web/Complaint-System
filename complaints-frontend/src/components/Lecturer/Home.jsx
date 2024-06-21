@@ -8,17 +8,21 @@ const LecturerHome = () => {
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [complaintsPerPage, setComplaintsPerPage] = useState(10);
-  const navigate = useNavigate()
+  const [courses, setCourses] = useState([]);
+  const [selectedCourse, setSelectedCourse] = useState("");
+  const navigate = useNavigate();
   const token = localStorage.getItem("token");
   const userID = localStorage.getItem("userID");
 
   useEffect(() => {
-    fetch(`http://localhost:4000/staff-complaints/${userID}`, {
+    console.log("Fetching courses...");
+    fetch(`http://localhost:4000/lecturer-courses/${userID}`, {
       headers: {
-        Authorization: token,
-      },
+        Authorization: token
+      }
     })
-      .then((response) => {
+    .then((response) => {
+        console.log("Response status:", response.status);
         if (response.status !== 200) {
           let err = new Error();
           err.message = "Invalid response code: " + response.status;
@@ -27,22 +31,53 @@ const LecturerHome = () => {
         return response.json();
       })
       .then((json) => {
-        if (json.complaints) {
-          // Filter out complaints with the status "Approved By HOD"
-          const filteredComplaints = json.complaints.filter(
-            (complaint) => complaint.status === "Pending"
-          );
-          setComplaints(filteredComplaints);
-        } else {
-          setComplaints([]);
-        }
-        setIsLoaded(true);
+        console.log("Courses received:", json.courses);
+        setCourses(json.courses);
       })
       .catch((error) => {
-        setIsLoaded(true);
+        console.error("Error fetching courses:", error);
         setError(error);
       });
   }, [token, userID]);
+
+  useEffect(() => {
+    if (selectedCourse) {
+      console.log("Fetching complaints for course:", selectedCourse);
+      fetch(`http://localhost:4000/lecturer-complaints/${userID}?course=${selectedCourse}`, {
+        headers: {
+          Authorization: token,
+        }
+      })
+      .then((response) => {
+          console.log("Response status:", response.status);
+          if (response.status !== 200) {
+            let err = new Error();
+            err.message = "Invalid response code: " + response.status;
+            throw err;
+          }
+          return response.json();
+        })
+        .then((json) => {
+          console.log("Complaints received:", json.complaints);
+          if (json.complaints) {
+            const filteredComplaints = json.complaints.filter(
+              (complaint) => complaint.status === "Pending"
+            );
+            setComplaints(filteredComplaints);
+          } else {
+            setComplaints([]);
+          }
+          setIsLoaded(true);
+        })
+        .catch((error) => {
+          console.error("Error fetching complaints:", error);
+          setIsLoaded(true);
+          setError(error);
+        });
+    } else {
+      setIsLoaded(true);
+    }
+  }, [selectedCourse, token, userID]);
 
   const totalPages = complaints ? Math.ceil(complaints.length / complaintsPerPage) : 0;
 
@@ -88,6 +123,20 @@ const LecturerHome = () => {
     return (
       <Fragment>
         <div className="container mx-auto px-4 py-8">
+          <div className="mb-4">
+            <label htmlFor="course_select" className="block mb-2">Select Course</label>
+            <select
+              id="course_select"
+              className="block w-full border border-gray-300 rounded px-3 py-2"
+              value={selectedCourse}
+              onChange={(e) => setSelectedCourse(e.target.value)}
+            >
+              <option value="">--- SELECT COURSE ---</option>
+              {courses.map((course) => (
+                <option key={course} value={course}>{course}</option>
+              ))}
+            </select>
+          </div>
           {complaints.length > 0 ? (
             <div>
               <table className="table-auto w-full">

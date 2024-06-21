@@ -1,0 +1,31 @@
+// useEffect(() => {
+  //   fetch(`http://localhost:4000/staff-complaints/${userID}`, {
+  //     headers: {
+  //       Authorization: token,
+  //     },
+  //   })
+  //     .then((response) => {
+  //       if (response.status !== 200) {
+  //         let err = new Error();
+  //         err.message = "Invalid response code: " + response.status;
+  //         throw err;
+  //       }
+  //       return response.json();
+  //     })
+  //     .then((json) => {
+  //       if (json.complaints) {
+  //         // Filter out complaints with the status "Approved By HOD"
+  //         const filteredComplaints = json.complaints.filter(
+  //           (complaint) => complaint.status === "Pending"
+  //         );
+  //         setComplaints(filteredComplaints);
+  //       } else {
+  //         setComplaints([]);
+  //       }
+  //       setIsLoaded(true);
+  //     })
+  //     .catch((error) => {
+  //       setIsLoaded(true);
+  //       setError(error);
+  //     });
+  // }, [token, userID]);

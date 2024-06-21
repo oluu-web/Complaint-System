@@ -27,7 +27,6 @@ func ConnectToDB() error {
 	if mongoURI == "" {
 		return fmt.Errorf("MONGOURI environment variable not set")
 	}
-	fmt.Println("MongoURI: ", mongoURI)
 	clientOptions := options.Client().ApplyURI(mongoURI)
 	var err error
 	client, err = mongo.Connect(context.Background(), clientOptions)
@@ -260,10 +259,51 @@ func GetStudentById(userID string) (Student, error) {
 	return student, nil
 }
 
+func GetStaffById(userID string) (Lecturer, error) {
+	var lecturer Lecturer
+	collection := GetDBCollection("Lecturers")
+
+	err := collection.FindOne(context.Background(), bson.M{"staff_id": userID}).Decode(&lecturer)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return Lecturer{}, fmt.Errorf("Lecturer not found")
+		}
+		return Lecturer{}, err
+	}
+	return lecturer, nil
+}
+
 func GetComplaintsByStatus(status string) ([]Complaint, error) {
 	collection := GetDBCollection("Complaints")
 	filter := bson.M{
 		"status": status,
+	}
+
+	cursor, err := collection.Find(context.Background(), filter)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(context.Background())
+
+	var complaints []Complaint
+	for cursor.Next(context.Background()) {
+		var complaint Complaint
+		err := cursor.Decode(&complaint)
+		if err != nil {
+			return nil, err
+		}
+		complaints = append(complaints, complaint)
+	}
+
+	return complaints, nil
+}
+
+func GetComplaintsByCourseCode(id, courseCode string) ([]Complaint, error) {
+	collection := GetDBCollection("Complaints")
+
+	filter := bson.M{
+		"course_concerned":    courseCode,
+		"responding_lecturer": id,
 	}
 
 	cursor, err := collection.Find(context.Background(), filter)
