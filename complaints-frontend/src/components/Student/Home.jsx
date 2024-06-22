@@ -9,8 +9,8 @@ const StudentHome = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [complaintsPerPage, setComplaintsPerPage] = useState(10);
   const navigate = useNavigate();
-  const token = localStorage.getItem("token");
-  const userID = localStorage.getItem("userID");
+  const token = sessionStorage.getItem("token");
+  const userID = sessionStorage.getItem("userID");
 
   useEffect(() => {
     fetch(`http://localhost:4000/complaints/${userID}`, {

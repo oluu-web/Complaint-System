@@ -119,7 +119,6 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	tokenString, err := token.SignedString(jwtKey)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		fmt.Println("line 114: ", jwtKey)
 		return
 	}
 	ok := jsonResp{
@@ -150,7 +149,6 @@ func NewComplaint(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		fmt.Println(err)
 	}
-	fmt.Println("This is the course concerned:" + courseConcerned)
 
 	file, handler, err := r.FormFile("file")
 	if err != nil {
@@ -286,7 +284,7 @@ func ChangeComplaintStatusByLecturer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = models.ChangeComplaintStatus(id, "Approved By Lecturer")
+	err = models.ChangeComplaintStatusLecturer(id, "Approved By Lecturer", updatedComplaint.Reason)
 	if err != nil {
 		utilities.ErrorJSON(w, err)
 	}
@@ -442,7 +440,6 @@ func GetComplaintsByCourseCode(w http.ResponseWriter, r *http.Request) {
 	params := httprouter.ParamsFromContext(r.Context())
 	id := params.ByName("id")
 	selectedCourse := r.URL.Query().Get("course")
-	fmt.Println(id)
 
 	complaints, err := models.GetComplaintsByCourseCode(id, selectedCourse)
 	if err != nil {

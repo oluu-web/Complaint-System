@@ -11,8 +11,8 @@ const LecturerHome = () => {
   const [courses, setCourses] = useState([]);
   const [selectedCourse, setSelectedCourse] = useState("");
   const navigate = useNavigate();
-  const token = localStorage.getItem("token");
-  const userID = localStorage.getItem("userID");
+  const token = sessionStorage.getItem("token");
+  const userID = sessionStorage.getItem("userID");
 
   useEffect(() => {
     console.log("Fetching courses...");
@@ -143,8 +143,7 @@ const LecturerHome = () => {
                 <thead>
                   <tr>
                     <th className="border px-4 py-2">Course Concerned</th>
-                    <th className="border px-4 py-2">Assigned Lecturer</th>
-                    <th className="border px-4 py-2">Status</th>
+                    <th className="border px-4 py-2">Requesting Student</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -156,8 +155,7 @@ const LecturerHome = () => {
                       }}
                       style={{ cursor: "pointer" }}>
                       <td className="border px-4 py-2">{complaint.course_concerned}</td>
-                      <td className="border px-4 py-2">{complaint.responding_lecturer}</td>
-                      <td className="border px-4 py-2">{complaint.status}</td>
+                      <td className="border px-4 py-2">{complaint.requesting_student}</td>
                     </tr>
                   ))}
                 </tbody>

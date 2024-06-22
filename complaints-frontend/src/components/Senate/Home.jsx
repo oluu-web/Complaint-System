@@ -9,7 +9,7 @@ const LecturerHome = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [complaintsPerPage, setComplaintsPerPage] = useState(10);
   const navigate = useNavigate()
-  const token = localStorage.getItem("token");
+  const token = sessionStorage.getItem("token");
 
   useEffect(() => {
     fetch(`http://localhost:4000/senate-complaints`, {

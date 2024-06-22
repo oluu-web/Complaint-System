@@ -28,8 +28,8 @@ const Login = () => {
       console.log("Login successful", data);
       setLoginSuccess(true);
       setLoginError(false);
-      localStorage.setItem("token", data.response.token);
-      localStorage.setItem("userID", data.response.user_id);
+      sessionStorage.setItem("token", data.response.token);
+      sessionStorage.setItem("userID", data.response.user_id);
       if (data.response.role === "S") {
         navigate("/student-dashboard");
       } else if (data.response.role === "L") {

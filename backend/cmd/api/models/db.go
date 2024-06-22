@@ -223,6 +223,30 @@ func ChangeComplaintStatus(id string, newStatus string) error {
 	return nil
 }
 
+func ChangeComplaintStatusLecturer(id string, newStatus string, reason string) error {
+	collection := GetDBCollection("Complaints")
+
+	objectID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return err
+	}
+
+	filter := bson.M{"_id": objectID}
+
+	update := bson.M{
+		"$set": bson.M{
+			"status": newStatus,
+			"reason": reason,
+		},
+	}
+
+	_, err = collection.UpdateOne(context.Background(), filter, update)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func ChangeStatusToByHOD(id string) error {
 	collection := GetDBCollection("Complaints")
 

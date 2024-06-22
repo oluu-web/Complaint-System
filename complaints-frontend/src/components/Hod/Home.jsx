@@ -9,8 +9,8 @@ const HODHome = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [complaintsPerPage, setComplaintsPerPage] = useState(10);
   const navigate = useNavigate();
-  const token = localStorage.getItem("token");
-  const userID = localStorage.getItem("userID");
+  const token = sessionStorage.getItem("token");
+  const userID = sessionStorage.getItem("userID");
 
   useEffect(() => {
     fetch(`http://localhost:4000/hod-complaints`, {
@@ -27,16 +27,20 @@ const HODHome = () => {
         return response.json();
       })
       .then((json) => {
+        if (Array.isArray(json.complaints)) {
         // Filter out complaints with the status "pending"
         const filteredComplaints = json.complaints.filter(
           (complaint) => complaint.status === "Approved By Lecturer"
         );
         setComplaints(filteredComplaints);
-        setIsLoaded(true);
-      })
-      .catch((error) => {
-        setIsLoaded(true);
-        setError(error);
+      } else {
+        setComplaints([]);
+      }
+      setIsLoaded(true);
+    })
+    .catch((error) => {
+      setIsLoaded(true);
+      setError(error);
       });
   }, [token, userID]);
 

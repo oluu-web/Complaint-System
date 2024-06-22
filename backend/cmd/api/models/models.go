@@ -58,6 +58,7 @@ type Complaint struct {
 	CourseConcerned    string             `json:"course_concerned,omitempty" bson:"course_concerned,omitempty"`
 	RespondingLecturer string             `json:"responding_lecturer,omitempty" bson:"responding_lecturer,omitempty"`
 	Status             string             `json:"status,omitempty" bson:"status,omitempty"`
+	Reason             string             `json:"reason,omitempty" bson:"reason,omitempty"`
 	CreatedAt          time.Time          `json:"created_at,omitempty" bson:"created_at,omitempty"`
 	UpdatedAt          time.Time          `json:"updated_at,omitempty" bson:"updated_at,omitempty"`
 }

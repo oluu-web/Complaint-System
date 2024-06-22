@@ -14,8 +14,8 @@ export default function ComplaintForm() {
   const [errorMessage, setErrorMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate()
-  const userID = localStorage.getItem("userID");
-  const token = localStorage.getItem("token");
+  const userID = sessionStorage.getItem("userID");
+  const token = sessionStorage.getItem("token");
 
   useEffect(() => {
     fetch(`http://localhost:4000/courses/${userID}`, {
