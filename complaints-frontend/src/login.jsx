@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [loginSuccess, setLoginSuccess] = useState(false);
   const [loginError, setLoginError] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
@@ -26,7 +25,6 @@ const Login = () => {
 
     if (data.response.ok) {
       console.log("Login successful", data);
-      setLoginSuccess(true);
       setLoginError(false);
       sessionStorage.setItem("token", data.response.token);
       sessionStorage.setItem("userID", data.response.user_id);
@@ -41,16 +39,18 @@ const Login = () => {
       }
     } else {
       console.log("Login failed", data);
-      setLoginSuccess(false);
       setLoginError(true);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">Sign in to your account</h2>
+          <h2 className="mt-6 text-center text-2xl font-extrabold text-gray-900">CU Revalidation System</h2>
+        </div>
+        <div>
+          <h3 className="mt-6 text-center text-2xl font-bold text-gray-900">Sign in to your account</h3>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <input type="hidden" name="remember" value="true" />
@@ -68,6 +68,7 @@ const Login = () => {
                 onChange={(e) => setUsername(e.target.value)}
               />
             </div>
+            <br />
             <div>
               <label htmlFor="password" className="sr-only">Password</label>
               <input

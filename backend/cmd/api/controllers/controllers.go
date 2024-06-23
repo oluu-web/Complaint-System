@@ -131,7 +131,6 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 	//send token in response
 	w.Header().Set("Authorization", tokenString)
-	w.WriteHeader(http.StatusOK)
 	utilities.WriteJSON(w, http.StatusOK, ok, "response")
 }
 
@@ -449,4 +448,19 @@ func GetComplaintsByCourseCode(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utilities.WriteJSON(w, http.StatusOK, complaints, "complaints")
+}
+
+func GetComplaintByCourseCode(w http.ResponseWriter, r *http.Request) {
+	params := httprouter.ParamsFromContext(r.Context())
+	id := params.ByName("id")
+	selectedCourse := r.URL.Query().Get("course")
+
+	complaint, err := models.GetComplaintByCourseCode(id, selectedCourse)
+	if err != nil {
+		fmt.Println("Unable to get complaint", err)
+		utilities.ErrorJSON(w, err)
+		return
+	}
+
+	utilities.WriteJSON(w, http.StatusOK, complaint, "complaint")
 }

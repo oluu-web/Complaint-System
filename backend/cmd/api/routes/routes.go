@@ -21,6 +21,7 @@ func InitRoutes() http.Handler {
 	}
 	router.HandlerFunc(http.MethodPost, "/complaint", authHandler(controllers.NewComplaint))
 	router.HandlerFunc(http.MethodGet, "/complaint/:id", authHandler(controllers.GetComplaintByObjectID))
+	router.HandlerFunc(http.MethodGet, "/student-complaint/:id", authHandler(controllers.GetComplaintByCourseCode))
 	router.HandlerFunc(http.MethodGet, "/complaints/:id", authHandler(controllers.GetComplaintsByStudentID))
 	router.HandlerFunc(http.MethodGet, "/courses/:id", authHandler(controllers.GetCoursesByStudentID))
 	router.HandlerFunc(http.MethodGet, "/lecturer-courses/:id", authHandler(controllers.GetCoursesByStaffID))

@@ -348,3 +348,22 @@ func GetComplaintsByCourseCode(id, courseCode string) ([]Complaint, error) {
 
 	return complaints, nil
 }
+
+func GetComplaintByCourseCode(id, courseCode string) (*Complaint, error) {
+	var complaint Complaint
+	collection := GetDBCollection("Complaints")
+
+	filter := bson.M{
+		"course_concerned":   courseCode,
+		"requesting_student": id,
+	}
+
+	err := collection.FindOne(context.Background(), filter).Decode(&complaint)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &complaint, nil
+}

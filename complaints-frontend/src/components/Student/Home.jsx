@@ -1,19 +1,52 @@
 import React, { useState, useEffect, Fragment } from "react";
-import { useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import '../Home.css';
 
 const StudentHome = () => {
-  const [complaints, setComplaints] = useState([]);
+  const { id } = useParams();
+  const [complaint, setComplaint] = useState({
+    id: id,
+    matricNo: null,
+    details: null,
+    file_path: null,
+    reason: null,
+    status: null,
+  });
   const [isLoaded, setIsLoaded] = useState(false);
   const [error, setError] = useState(null);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [complaintsPerPage, setComplaintsPerPage] = useState(10);
+  const [courses, setCourses] = useState([]);
+  const [selectedCourse, setSelectedCourse] = useState("");
   const navigate = useNavigate();
   const token = sessionStorage.getItem("token");
   const userID = sessionStorage.getItem("userID");
 
   useEffect(() => {
-    fetch(`http://localhost:4000/complaints/${userID}`, {
+    fetch(`http://localhost:4000/courses/${userID}`, {
+      headers: {
+        Authorization: token
+      }
+    })
+      .then((response) => {
+        if (response.status !== 200) {
+          let err = new Error();
+          err.message = "Invalid response code: " + response.status;
+          throw err;
+        }
+        return response.json();
+      })
+      .then((json) => {
+        setCourses(json.courses);
+        setIsLoaded(true);
+      })
+      .catch((error) => {
+        setIsLoaded(true);
+        setError(error);
+      });
+  }, [token, userID]);
+
+  useEffect(() => {
+    if (selectedCourse) {
+      fetch(`http://localhost:4000/student-complaint/${userID}?course=${selectedCourse}`, {
       headers: {
         Authorization: token,
       },
@@ -27,49 +60,32 @@ const StudentHome = () => {
         return response.json();
       })
       .then((json) => {
-        setComplaints(json.complaints);
+        console.log(json.complaint)
+        if (json.complaint !== null) {
+        setComplaint({
+          matricNo: json.complaint.requesting_student,
+          details: json.complaint.request_details,
+          file_path: `http://localhost:4000/${json.complaint.file_path}`, // Update the file path
+          reason: json.complaint.reason,
+          status: json.complaint.status,
+        });
+      } else {
+        setComplaint(null)
+      }
         setIsLoaded(true);
       })
       .catch((error) => {
         setIsLoaded(true);
         setError(error);
       });
-  }, [token, userID]);
-
-  const totalPages = complaints ? Math.ceil(complaints.length / complaintsPerPage) : 0;
-
-  const handlePageChange = (pageNumber) => {
-    setCurrentPage(pageNumber);
-  };
-
-  const handleComplaintsPerPageChange = (evt) => {
-    setComplaintsPerPage(Number(evt.target.value));
-    setCurrentPage(1);
-  };
+    } else {
+      setIsLoaded(true)
+    }
+    
+  }, [selectedCourse, token, userID]);
 
   const handleNewComplaint = () => {
     navigate('/new-complaint');
-  };
-
-  const renderPaginationButtons = () => {
-    const pageNumbers = [];
-    for (let i = 1; i <= totalPages; i++) {
-      pageNumbers.push(i);
-    }
-
-    return (
-      <div className="flex justify-center mt-4">
-        {pageNumbers.map((number) => (
-          <button
-            key={number}
-            className={`mx-1 px-3 py-1 rounded ${currentPage === number ? "bg-blue-500 text-white" : "bg-gray-200"}`}
-            onClick={() => handlePageChange(number)}
-          >
-            {number}
-          </button>
-        ))}
-      </div>
-    );
   };
 
   if (error) {
@@ -77,72 +93,70 @@ const StudentHome = () => {
   } else if (!isLoaded) {
     return <p className="text-center mt-4">Loading...</p>;
   } else {
-    const indexOfLastComplaint = currentPage * complaintsPerPage;
-    const indexOfFirstComplaint = indexOfLastComplaint - complaintsPerPage;
-    const currentComplaints = complaints ? complaints.slice(indexOfFirstComplaint, indexOfLastComplaint) : [];
-
     return (
       <Fragment>
       <div className="container mx-auto px-4 py-8">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-2xl font-bold">My Complaints</h1>
-          {/* <button
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-            onClick={handleNewComplaint}
-          >
-            New Complaint
-          </button> */}
         </div>
-        {complaints !== null ? (
-          <div>
-          <button
-          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded flex justify-between items-center mb-8"
-            onClick={handleNewComplaint}>
-              New Complaint
-            </button>
-          <table className="table-auto w-full">
-            <thead>
-              <tr>
-                <th className="border px-4 py-2">Course Concerned</th>
-                <th className="border px-4 py-2">Assigned Lecturer</th>
-                <th className="border px-4 py-2">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {currentComplaints.map((complaint) => (
-                <tr key={complaint._id}>
-                  <td className="border px-4 py-2">{complaint.course_concerned}</td>
-                  <td className="border px-4 py-2">{complaint.responding_lecturer}</td>
-                  <td className="border px-4 py-2">{complaint.status}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
 
-          <div className="mt-8 flex justify-between items-center">
-          {renderPaginationButtons()}
-          <select
-            className="ml-4 px-2 py-1 rounded border"
-            value={complaintsPerPage}
-            onChange={handleComplaintsPerPageChange}
-          >
-            <option value={10}>10</option>
-            <option value={50}>50</option>
-            <option value={100}>100</option>
-          </select>
-        </div>
-        </div>
-        ) : (
-          <div className="flex justify-center">
-            <button
-              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-              onClick={handleNewComplaint}
+            <div className="mb-4">
+            <label htmlFor="course_select" className="block mb-2">Select Course</label>
+            <select
+              id="course_select"
+              className="block w-full border border-gray-300 rounded px-3 py-2"
+              value={selectedCourse}
+              onChange={(e) => setSelectedCourse(e.target.value)}
             >
-              New Complaint
-            </button>
+              <option value="">--- SELECT COURSE ---</option>
+              {courses.map((course) => (
+                <option key={course} value={course}>{course}</option>
+              ))}
+            </select>
           </div>
-        )}
-      </div>
+
+        {selectedCourse === "" ? (
+            <div className="flex justify-center">
+              <button
+                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                onClick={handleNewComplaint}
+              >
+                New Complaint
+              </button>
+            </div>
+          ) : complaint !== null ? (
+            <div>
+              <button
+                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded flex justify-between items-center mb-8"
+                onClick={handleNewComplaint}
+              >
+                New Complaint
+              </button>
+              <div>
+                <h1 className="text-2xl font-bold mb-4">Complaint Details</h1>
+                <p className="text-lg font-semibold mb-2">Matric Number: <span className="font-normal">{complaint.matricNo}</span></p>
+                <div className="bg-gray-100 p-4 rounded-lg mb-4">
+                  <h2 className="text-xl font-semibold mb-2">Details</h2>
+                  <p className="mb-4">{complaint.details}</p>
+                  {complaint.file_path && <img src={complaint.file_path} alt='complaint' className="max-w-full h-auto rounded-lg" />}
+                  <br />
+                  <h2 className="text-xl font-semibold mb-2">Approval Details</h2>
+                  <p><span className="font-semibold">Status</span>: {complaint.status}</p>
+                  <p className="mb-4"><span className="font-semibold">Reason</span>: {complaint.reason}</p>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="flex justify-center">
+              <button
+                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                onClick={handleNewComplaint}
+              >
+                New Complaint
+              </button>
+            </div>
+          )}
+        </div>
       </Fragment>
     );
   }
