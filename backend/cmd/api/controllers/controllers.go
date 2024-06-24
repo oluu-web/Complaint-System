@@ -607,5 +607,5 @@ func SendEmail(body string, recipient string, subject string) error {
 	}
 
 	log.Print("sent, visit http://foobarbazz.mailinator.com")
-	return err
+	return nil
 }
