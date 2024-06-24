@@ -53,7 +53,8 @@ type Complaint struct {
 	ID                 primitive.ObjectID `json:"_id" bson:"_id,omitempty"`
 	RequestingStudent  string             `json:"requesting_student,omitempty" bson:"requesting_student,omitempty"`
 	RequestDetails     string             `json:"request_details,omitempty" bson:"request_details,omitempty"`
-	FilePath           string             `json:"file_path,omitempty" bson:"file_path,omitempty"`
+	StudentProof       string             `json:"student_proof,omitempty" bson:"student_proof,omitempty"`
+	LecturerProof      string             `json:"lecturer_proof,omitempty" bson:"lecturer_proof,omitempty"`
 	TestScore          int                `json:"test_score,omitempty" bson:"test_score,omitempty"`
 	CourseConcerned    string             `json:"course_concerned,omitempty" bson:"course_concerned,omitempty"`
 	RespondingLecturer string             `json:"responding_lecturer,omitempty" bson:"responding_lecturer,omitempty"`

@@ -7,6 +7,7 @@ const Complaint = () => {
   const token = sessionStorage.getItem("token");
   const navigate = useNavigate();
   const [reason, setReason] = useState("");
+  const [file, setFile] = useState(null);
   const [isAccepting, setIsAccepting] = useState(false);
   const [isDeclining, setIsDeclining] = useState(false);
 
@@ -14,7 +15,7 @@ const Complaint = () => {
     id: id,
     matricNo: "",
     details: "",
-    file_path: "",
+    student_proof: "",
   });
   const [isLoaded, setIsLoaded] = useState(false);
   const [error, setError] = useState(null);
@@ -38,7 +39,7 @@ const Complaint = () => {
         setComplaint({
           matricNo: json.complaint.requesting_student,
           details: json.complaint.request_details,
-          file_path: `http://localhost:4000/${json.complaint.file_path}`, // Update the file path
+          student_proof: `http://localhost:4000/${json.complaint.student_proof}`, // Update the file path
         });
         setIsLoaded(true);
       })
@@ -48,14 +49,32 @@ const Complaint = () => {
       });
   }, [token, id]);
 
+  const handleFileChange = (e) => {
+  const selectedFile = e.target.files[0];
+  if (selectedFile && selectedFile.size > 10 * 1024 * 1024) { // 10 MB limit
+    setErrorMessage("File size exceeds the 10 MB limit.");
+    setFile(null);
+  } else {
+    setErrorMessage("");
+    setFile(selectedFile);
+  }
+};
+
+
   const handleAccept = (e) => {
     e.preventDefault();
     setIsAccepting(true);
 
+    const formData = new FormData();
+    formData.append("reason", reason);
+    formData.append("file", file);
+    console.log("FormData before sending (Accept):", Object.fromEntries(formData));
 
-    axios.put(`http://localhost:4000/approved-by-lecturer/${id}`, {reason}, {
+
+    axios.put(`http://localhost:4000/approved-by-lecturer/${id}`, formData, {
       headers: {
         Authorization: token,
+        'Content-Type': 'multipart/form-data'
       }
     })
       .then((res) => {
@@ -80,8 +99,13 @@ const Complaint = () => {
   const handleDecline = (e) => {
     e.preventDefault();
     setIsDeclining(true);
+    const formData = new FormData();
+    formData.append("reason", reason);
+    formData.append("file", file);
+    console.log("FormData before sending (Decline):", Object.fromEntries(formData));
 
-    axios.put(`http://localhost:4000/decline/${id}`, {reason}, {
+
+    axios.put(`http://localhost:4000/decline/${id}`, formData, {
       headers: {
         Authorization: token,
       }
@@ -118,7 +142,7 @@ const Complaint = () => {
           <div className="bg-gray-100 p-4 rounded-lg mb-4">
             <h2 className="text-xl font-semibold mb-2">Details</h2>
             <p className="mb-4">{complaint.details}</p>
-            {complaint.file_path && <img src={complaint.file_path} alt='complaint' className="max-w-full h-auto rounded-lg" />}
+            {complaint.student_proof && <img src={complaint.student_proof} alt='complaint' className="max-w-full h-auto rounded-lg" />}
           </div>
 
           <form
@@ -129,6 +153,14 @@ const Complaint = () => {
             className="block w-full border border-gray-300 rounded px-3 py-2 mb-4"
             value={reason}
             onChange={(e) => setReason(e.target.value)}
+          />
+
+          <label htmlFor="file" className="block mb-2">Upload File</label>
+          <input
+            type="file"
+            id="file"
+            onChange={handleFileChange}
+            className="block w-full border border-gray-300 rounded px-3 py-2 mb-4"
           />
             </form>
           <div className="flex space-x-4">

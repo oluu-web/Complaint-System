@@ -223,7 +223,7 @@ func ChangeComplaintStatus(id string, newStatus string) error {
 	return nil
 }
 
-func ChangeComplaintStatusLecturer(id string, newStatus string, reason string) error {
+func ChangeComplaintStatusLecturer(id string, newStatus string, reason string, lecturer_proof string) error {
 	collection := GetDBCollection("Complaints")
 
 	objectID, err := primitive.ObjectIDFromHex(id)
@@ -235,8 +235,9 @@ func ChangeComplaintStatusLecturer(id string, newStatus string, reason string) e
 
 	update := bson.M{
 		"$set": bson.M{
-			"status": newStatus,
-			"reason": reason,
+			"status":         newStatus,
+			"reason":         reason,
+			"lecturer_proof": lecturer_proof,
 		},
 	}
 
@@ -366,4 +367,24 @@ func GetComplaintByCourseCode(id, courseCode string) (*Complaint, error) {
 		return nil, err
 	}
 	return &complaint, nil
+}
+
+func ComplaintAlreadyExists(id, courseCode string) (bool, error) {
+	var complaint Complaint
+	collection := GetDBCollection("Complaints")
+
+	filter := bson.M{
+		"course_concerned":   courseCode,
+		"requesting_student": id,
+	}
+
+	err := collection.FindOne(context.Background(), filter).Decode(&complaint)
+
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return false, nil
+		}
+		return false, err
+	}
+	return true, nil
 }

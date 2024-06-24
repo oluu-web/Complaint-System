@@ -11,10 +11,11 @@ const Complaint = () => {
 
   const [complaint, setComplaint] = useState({
     id: id,
-    matricNo: "",
-    details: "",
-    file_path: "",
-    reason: "",
+    matricNo: null,
+    details: null,
+    student_proof: null,
+    lecturer_proof: null,
+    reason: null,
   });
   const [isLoaded, setIsLoaded] = useState(false);
   const [error, setError] = useState(null);
@@ -38,7 +39,8 @@ const Complaint = () => {
         setComplaint({
           matricNo: json.complaint.requesting_student,
           details: json.complaint.request_details,
-          file_path: `http://localhost:4000/${json.complaint.file_path}`, // Update the file path
+          student_proof: `http://localhost:4000/${json.complaint.student_proof}`,
+          lecturer_proof: `http://localhost:4000/${json.complaint.lecturer_proof}`,
           reason: json.complaint.reason,
         });
         setIsLoaded(true);
@@ -116,11 +118,14 @@ const Complaint = () => {
           <h1 className="text-2xl font-bold mb-4">Complaint Details</h1>
           <p className="text-lg font-semibold mb-2">Matric Number: <span className="font-normal">{complaint.matricNo}</span></p>
           <div className="bg-gray-100 p-4 rounded-lg mb-4">
-            <h2 className="text-xl font-semibold mb-2">Details</h2>
+            <br />
+            <h2 className="text-xl font-semibold mb-2"> Details</h2>
             <p className="mb-4">{complaint.details}</p>
-            {complaint.file_path && <img src={complaint.file_path} alt='complaint' className="max-w-full h-auto rounded-lg" />}
-            <h2 className="text-xl font-semibold mb-2">Details</h2>
-            <p className="mb-4">{complaint.reason}</p>
+            {complaint.student_proof && <img src={complaint.student_proof} alt='complaint' className="max-w-full h-auto rounded-lg" />}
+            <h2 className="text-xl font-semibold mb-2">Approval Details</h2>
+            <p><span className="font-semibold">Status</span>: {complaint.status}</p>
+            <p className="mb-4"><span className="font-semibold">Reason</span>: {complaint.reason}</p>
+            {complaint.status !== "Pending" ? (<img src={complaint.lecturer_proof} className="max-w-full h-auto rounded-lg" alt="lecturer proof"/>): (<div></div>)}
           </div>
           <div className="flex space-x-4">
             <button className="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600" onClick={handleAccept}>{isAccepting ? (

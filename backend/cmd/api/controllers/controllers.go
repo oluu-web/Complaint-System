@@ -190,7 +190,7 @@ func NewComplaint(w http.ResponseWriter, r *http.Request) {
 		CourseConcerned:   courseConcerned,
 		RequestDetails:    requestDetails,
 		TestScore:         testScore,
-		FilePath:          fmt.Sprintf("/uploads/%s", handler.Filename),
+		StudentProof:      fmt.Sprintf("/uploads/%s", handler.Filename),
 		Status:            "Pending",
 		CreatedAt:         time.Now(),
 		UpdatedAt:         time.Now(),
@@ -207,10 +207,19 @@ func NewComplaint(w http.ResponseWriter, r *http.Request) {
 	respondingLecturer := course.Lecturers[rand.Intn(len(course.Lecturers))]
 
 	complaint.RespondingLecturer = respondingLecturer
-	_, err = models.CreateNewComplaint(complaint)
+	exists, err := models.ComplaintAlreadyExists(studentId, courseConcerned)
 	if err != nil {
 		utilities.ErrorJSON(w, err)
 		return
+	}
+	if !exists {
+		_, err = models.CreateNewComplaint(complaint)
+		if err != nil {
+			utilities.ErrorJSON(w, err)
+			return
+		}
+	} else {
+		utilities.ErrorJSON(w, fmt.Errorf("you already have an existing complaint for this course"))
 	}
 }
 
@@ -275,15 +284,63 @@ func GetComplaintsByStudentID(w http.ResponseWriter, r *http.Request) {
 func ChangeComplaintStatusByLecturer(w http.ResponseWriter, r *http.Request) {
 	params := httprouter.ParamsFromContext(r.Context())
 	id := params.ByName("id")
-
 	var updatedComplaint models.Complaint
-	err := json.NewDecoder(r.Body).Decode(&updatedComplaint)
+
+	r.Body = http.MaxBytesReader(w, r.Body, 10<<20) // 10 MB max
+	if err := r.ParseMultipartForm(10 << 20); err != nil {
+		http.Error(w, "File too large", http.StatusBadRequest)
+		return
+	}
+
+	// Extract reason from form data
+	reason := r.FormValue("reason")
+	if reason == "" {
+		http.Error(w, "Reason is required", http.StatusBadRequest)
+		return
+	}
+
+	file, handler, err := r.FormFile("file")
 	if err != nil {
 		utilities.ErrorJSON(w, err)
 		return
 	}
+	defer file.Close()
 
-	err = models.ChangeComplaintStatusLecturer(id, "Approved By Lecturer", updatedComplaint.Reason)
+	//ensure upload directory exists
+	uploadsDir := "uploads"
+	if _, err := os.Stat(uploadsDir); os.IsNotExist(err) {
+		err = os.Mkdir(uploadsDir, os.ModePerm)
+		if err != nil {
+			utilities.ErrorJSON(w, err)
+			return
+		}
+	}
+
+	//create new file name and save the file
+	dst, err := os.Create(filepath.Join(uploadsDir, handler.Filename))
+	if err != nil {
+		utilities.ErrorJSON(w, err)
+		return
+	}
+	defer dst.Close()
+
+	if _, err := io.Copy(dst, file); err != nil {
+		utilities.ErrorJSON(w, err)
+		return
+	}
+
+	updatedComplaint.Reason = reason
+
+	lecturerProof := fmt.Sprintf("/uploads/%s", handler.Filename)
+	updatedComplaint.LecturerProof = lecturerProof
+
+	// err := json.NewDecoder(r.Body).Decode(&updatedComplaint)
+	// if err != nil {
+	// 	utilities.ErrorJSON(w, err)
+	// 	return
+	// }
+
+	err = models.ChangeComplaintStatusLecturer(id, "Approved By Lecturer", updatedComplaint.Reason, updatedComplaint.LecturerProof)
 	if err != nil {
 		utilities.ErrorJSON(w, err)
 	}
