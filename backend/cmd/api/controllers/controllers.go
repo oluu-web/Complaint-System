@@ -11,6 +11,7 @@ import (
 	"log"
 	"math/rand"
 	"net/http"
+	"net/smtp"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -218,6 +219,18 @@ func NewComplaint(w http.ResponseWriter, r *http.Request) {
 			utilities.ErrorJSON(w, err)
 			return
 		}
+		body := fmt.Sprintf("You have a new revalidation request from %s concerning %s. \n Log in to your portal to see the full details", studentId, courseConcerned)
+		lecturer, err := models.GetUserByUserID(respondingLecturer)
+		if err != nil {
+			utilities.ErrorJSON(w, err)
+			return
+		}
+		email := lecturer.Email
+		subject := fmt.Sprintf("New revalidation request for %s", courseConcerned)
+		err = SendEmail(body, email, subject)
+		if err != nil {
+			utilities.ErrorJSON(w, err)
+		}
 	} else {
 		utilities.ErrorJSON(w, fmt.Errorf("you already have an existing complaint for this course"))
 	}
@@ -334,13 +347,31 @@ func ChangeComplaintStatusByLecturer(w http.ResponseWriter, r *http.Request) {
 	lecturerProof := fmt.Sprintf("/uploads/%s", handler.Filename)
 	updatedComplaint.LecturerProof = lecturerProof
 
-	// err := json.NewDecoder(r.Body).Decode(&updatedComplaint)
-	// if err != nil {
-	// 	utilities.ErrorJSON(w, err)
-	// 	return
-	// }
-
 	err = models.ChangeComplaintStatusLecturer(id, "Approved By Lecturer", updatedComplaint.Reason, updatedComplaint.LecturerProof)
+	if err != nil {
+		utilities.ErrorJSON(w, err)
+	}
+
+	body := fmt.Sprintf("Your revalidation request, concerning %s, which was assigned to %s has been approved by the lecturer. \n Log in to your portal to see more details", updatedComplaint.CourseConcerned, updatedComplaint.RespondingLecturer)
+	student, err := models.GetUserByUserID(updatedComplaint.RequestingStudent)
+	if err != nil {
+		utilities.ErrorJSON(w, err)
+	}
+	email := student.Email
+	subject := fmt.Sprintf("Update Concerning Revalidation Request for %s", updatedComplaint.CourseConcerned)
+	err = SendEmail(body, email, subject)
+	if err != nil {
+		utilities.ErrorJSON(w, err)
+	}
+
+	body2 := fmt.Sprintf("You have a new revalidation request through %s concerning %s for %s. \n Log in to your portal to see the full details", updatedComplaint.RespondingLecturer, updatedComplaint.CourseConcerned, updatedComplaint.RequestingStudent)
+	hod, err := models.GetUserByUserID("23001")
+	if err != nil {
+		utilities.ErrorJSON(w, err)
+	}
+	email2 := hod.Email
+	subject2 := fmt.Sprintf("Revalidation Request from %s concerning %s", updatedComplaint.RespondingLecturer, updatedComplaint.CourseConcerned)
+	err = SendEmail(body2, email2, subject2)
 	if err != nil {
 		utilities.ErrorJSON(w, err)
 	}
@@ -382,6 +413,29 @@ func ChangeComplaintStatusByHOD(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		utilities.ErrorJSON(w, err)
 	}
+	body := fmt.Sprintf("Your revalidation request, concerning %s, which was assigned to %s has been approved by your HOD. \n Log in to your portal to see more details", updatedComplaint.CourseConcerned, updatedComplaint.RespondingLecturer)
+	student, err := models.GetUserByUserID(updatedComplaint.RequestingStudent)
+	if err != nil {
+		utilities.ErrorJSON(w, err)
+	}
+	email := student.Email
+	subject := fmt.Sprintf("Update Concerning Revalidation Request for %s", updatedComplaint.CourseConcerned)
+	err = SendEmail(body, email, subject)
+	if err != nil {
+		utilities.ErrorJSON(w, err)
+	}
+
+	body2 := fmt.Sprintf("You have a new revalidation request through %s concerning %s for %s. \n Log in to your portal to see the full details", updatedComplaint.RespondingLecturer, updatedComplaint.CourseConcerned, updatedComplaint.RequestingStudent)
+	senate, err := models.GetUserByUserID("19201")
+	if err != nil {
+		utilities.ErrorJSON(w, err)
+	}
+	email2 := senate.Email
+	subject2 := fmt.Sprintf("Revalidation Request from %s concerning %s", updatedComplaint.RespondingLecturer, updatedComplaint.CourseConcerned)
+	err = SendEmail(body2, email2, subject2)
+	if err != nil {
+		utilities.ErrorJSON(w, err)
+	}
 
 	utilities.WriteJSON(w, http.StatusOK, "Status Updated Successfully", "Success")
 }
@@ -398,6 +452,17 @@ func ChangeComplaintStatusBySenate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = models.ChangeComplaintStatus(id, "Approved By Senate")
+	if err != nil {
+		utilities.ErrorJSON(w, err)
+	}
+	body := fmt.Sprintf("Your revalidation request, concerning %s, which was assigned to %s has been approved by the senate. \n Log in to your portal to see more details", updatedComplaint.CourseConcerned, updatedComplaint.RespondingLecturer)
+	student, err := models.GetUserByUserID(updatedComplaint.RequestingStudent)
+	if err != nil {
+		utilities.ErrorJSON(w, err)
+	}
+	email := student.Email
+	subject := fmt.Sprintf("Update Concerning Revalidation Request for %s", updatedComplaint.CourseConcerned)
+	err = SendEmail(body, email, subject)
 	if err != nil {
 		utilities.ErrorJSON(w, err)
 	}
@@ -520,4 +585,27 @@ func GetComplaintByCourseCode(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utilities.WriteJSON(w, http.StatusOK, complaint, "complaint")
+}
+
+func SendEmail(body string, recipient string, subject string) error {
+	from := os.Getenv("EMAIL_SENDER")
+	pass := os.Getenv("EMAIL_PASS")
+	to := recipient
+
+	msg := "From: " + from + "\n" +
+		"To: " + to + "\n" +
+		"Subject: " + subject + "\n\n" +
+		body
+
+	err := smtp.SendMail("smtp.gmail.com:587",
+		smtp.PlainAuth("", from, pass, "smtp.gmail.com"),
+		from, []string{to}, []byte(msg))
+
+	if err != nil {
+		log.Printf("smtp error: %s", err)
+		return fmt.Errorf("smtp error: %s", err)
+	}
+
+	log.Print("sent, visit http://foobarbazz.mailinator.com")
+	return err
 }
